@@ -1,0 +1,13 @@
+extrn File_init
+extrn File_assign
+extrn File_create
+extrn File_open
+extrn File_close
+extrn file_truncate
+extrn File_read
+extrn File_write
+extrn File_GetSize
+extrn File_getpos
+extrn File_setpos
+extrn File_SetFilemode
+extrn File_done

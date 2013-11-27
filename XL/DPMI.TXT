@@ -1,0 +1,986 @@
+--------E-310000-----------------------------
+INT 31 P - DPMI 0.9+ - ALLOCATE LDT DESCRIPTORS
+	AX = 0000h
+	CX = number of descriptors to allocate
+Return: CF clear if successful
+	    AX = base selector
+	CF set on error
+	    AX = error code (DPMI 1.0+) (see #2293)
+Notes:	DPMI is the DOS Protected-Mode Interface
+	the base and limit of the returned descriptors will be 0, and the type
+	  will be "data"
+	add the value returned by INT 31/AX=0003h to move to subsequent
+	  descriptors if multiple descriptors were allocated
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0001h,AX=000Dh,INT 21/AX=3501h
+
+(Table 2293)
+Values for DPMI 1.0 error code:
+ 0000h-7FFFh DOS error passed through by DPMI
+ 8001h	unsupported function
+ 8002h	object in wrong state for function
+ 8003h	system integrity would be endangered
+ 8004h	deadlock detected
+ 8005h	pending serialization request cancelled
+ 8010h	out of DPMI internal resources
+ 8011h	descriptor unavailable
+ 8012h	linear memory unavailable
+ 8013h	physical memory unavailable
+ 8014h	backing store unavailable
+ 8015h	callback unavailable
+ 8016h	handle unavailable
+ 8017h	maximum lock count exceeded
+ 8018h	shared memory already serialized exclusively by another
+ 8019h	shared memory already serialized shared by another client
+ 8021h	invalid value for numeric or flag parameter
+ 8022h	invalid segment selector
+ 8023h	invalid handle
+ 8024h	invalid callback
+ 8025h	invalid linear address
+ 8026h	request not supported by hardware
+--------E-310001-----------------------------
+INT 31 P - DPMI 0.9+ - FREE LDT DESCRIPTOR
+	AX = 0001h
+	BX = selector to free
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8022h) (see #2293)
+Notes:	only one descriptor is freed per call
+	the program's initial CS, DS, and SS descriptors may be freed
+	(DPMI 1.0+) any segment registers containing the freed selector are
+	  set to 0000h
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0000h,AX=000Ah,AX=000Dh,INT 21/AX=3502h
+--------E-310002-----------------------------
+INT 31 P - DPMI 0.9+ - SEGMENT TO DESCRIPTOR
+	AX = 0002h
+	BX = real mode segment
+Return: CF clear if successful
+	    AX = selector corresponding to real mode segment (64K limit)
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8011h) (see #2293)
+Notes:	multiple calls for the same real mode segment return the same selector
+	the returned descriptor can never be modified or freed
+	not supported by MS Windows 3.0 in Standard mode
+--------E-310003-----------------------------
+INT 31 P - DPMI 0.9+ - GET NEXT SELECTOR INCREMENT VALUE
+	AX = 0003h
+Return: CF clear
+	    AX = value to add to get next sequential selector
+Notes:	the increment will be a power of two
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0000h
+--------E-310004-----------------------------
+INT 31 P - DPMI 0.9+ - LOCK SELECTOR
+	AX = 0004h
+	BX = selector to lock (prevent paging)
+Return: ???
+Note:	although marked as reserved in versions 0.9 and 1.0 of the DPMI
+	  specification, this function is called by MS Windows TASKMAN,
+	  PROGMAN, and KERNEL
+SeeAlso: AX=0005h,AX=0600h
+--------E-310005-----------------------------
+INT 31 P - DPMI 0.9+ - UNLOCK SELECTOR
+	AX = 0005h
+	BX = selector to unlock (permit paging)
+Return: ???
+Note:	although marked as reserved in versions 0.9 and 1.0 of the DPMI
+	  specification, this function is called by MS Windows TASKMAN,
+	  PROGMAN, and KERNEL
+SeeAlso: AX=0004h,AX=0601h
+--------E-310006-----------------------------
+INT 31 P - DPMI 0.9+ - GET SEGMENT BASE ADDRESS
+	AX = 0006h
+	BX = selector
+Return: CF clear if successful
+	    CX:DX = linear base address of segment
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8022h) (see #2293)
+Note:	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0007h,INT 21/AX=3504h
+--------E-310007-----------------------------
+INT 31 P - DPMI 0.9+ - SET SEGMENT BASE ADDRESS
+	AX = 0007h
+	BX = selector
+	CX:DX = linear base address
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8022h,8025h) (see #2293)
+Notes:	only modify descriptors allocated with INT 31/AX=0000h
+	only the low 24 bits of the address will be used by 16-bit DPMI
+	  implementations even on a 386 or higher
+	DPMI 1.0+ automatically reloads any segment registers containing the
+	  selector being modified
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0006h,AX=0008h,AX=0009h,AX=000Ch,INT 21/AX=3503h
+SeeAlso: INT 21/AH=E9h"OS/286",INT 2C/AX=0002h
+--------E-310008-----------------------------
+INT 31 P - DPMI 0.9+ - SET SEGMENT LIMIT
+	AX = 0008h
+	BX = selector
+	CX:DX = segment limit
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8021h,8022h,8025h) (see #2293)
+Notes:	CX must be zero for 16-bit DPMI implementations
+	limits greater than 1MB must be page aligned (low 12 bits set)
+	only modify descriptors allocated with INT 31/AX=0000h
+	DPMI 1.0+ automatically reloads any segment registers containing the
+	  selector being modified
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0007h,AX=0009h,AX=000Ch,INT 21/AX=3505h,INT 21/AH=E9h"OS/286"
+SeeAlso: INT 2C/AX=0003h,#0395 at INT 15/AH=89h
+--------E-310009-----------------------------
+INT 31 P - DPMI 0.9+ - SET DESCRIPTOR ACCESS RIGHTS
+	AX = 0009h
+	BX = selector
+	CL = access rights/type byte (see #0396 at INT 15/AH=89h)
+	CH = 80386 extended rights/type byte (see #0397 at INT 15/AH=89h)
+	    (32-bit DPMI implementations only)
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8021h,8022h,8025h) (see #2293)
+Notes:	if the Present bit is clear, CL bits 0-3 may have any value
+	DPMI 1.0+ automatically reloads any segment registers containing the
+	  selector being modified
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0007h,AX=0008h,AX=000Ch,INT 21/AX=2514h,INT 2C/AX=0004h
+SeeAlso: INT 2C/AX=0005h
+--------E-31000A-----------------------------
+INT 31 P - DPMI 0.9+ - CREATE ALIAS DESCRIPTOR
+	AX = 000Ah
+	BX = selector
+Return: CF clear if successful
+	    AX = new data selector
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8011h,8022h) (see #2293)
+Notes:	fails if selector in BX is not a code segment or is invalid
+	use INT 31/AX=0001h to free new selector
+	future changes to the original selector will not be reflected in the
+	  returned alias selector
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0001h
+--------E-31000B-----------------------------
+INT 31 P - DPMI 0.9+ - GET DESCRIPTOR
+	AX = 000Bh
+	BX = LDT selector
+	ES:(E)DI -> 8-byte buffer for copy of descriptor
+Return: CF clear if successful
+	    buffer filled
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8022h) (see #2293)
+Notes:	16-bit programs use ES:DI as pointer, 32-bit must use ES:EDI
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=000Ch
+--------E-31000C-----------------------------
+INT 31 P - DPMI 0.9+ - SET DESCRIPTOR
+	AX = 000Ch
+	BX = LDT selector
+	ES:(E)DI -> 8-byte buffer containing descriptor
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8021h,8022h,8025h) (see #2293)
+Notes:	16-bit programs use ES:DI as pointer, 32-bit must use ES:EDI
+	only modify descriptors allocated with INT 31/AX=0000h
+	DPMI 1.0+ automatically reloads any segment registers containing the
+	  selector being modified
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=000Bh
+--------E-31000D-----------------------------
+INT 31 P - DPMI 0.9+ - ALLOCATE SPECIFIC LDT DESCRIPTOR
+	AX = 000Dh
+	BX = LDT selector
+Return: CF clear if successful
+	    descriptor allocated
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8011h,8022h) (see #2293)
+Notes:	free descriptor with INT 31/AX=0001h
+	the first 16 descriptors (04h-7Ch) are reserved for this function, but
+	  some may already be in use by other applications under DPMI 0.9;
+	  DPMI 1.0 guarantees 16 descriptors per client
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0000h,AX=0001h
+--------E-31000E-----------------------------
+INT 31 P - DPMI 1.0+ - GET MULTIPLE DESCRIPTORS
+	AX = 000Eh
+	CX = number of descriptors to copy
+	ES:(E)DI -> descriptor buffer (see #2294)
+Return: CF clear if successful
+	    descriptors copied
+	CF set on error
+	    AX = error code (8022h) (see #2293)
+	    CX = number of descriptors successfully copied
+Notes:	16-bit programs use ES:DI as pointer, 32-bit must use ES:EDI
+	if the function fails, the first CX descriptors are valid; the
+	  remainder are not modified
+SeeAlso: AX=000Bh,AX=000Fh
+
+Format of DPMI descriptor buffer entry (one per descriptor to get):
+Offset	Size	Description	(Table 2294)
+ 00h	WORD	selector (set by client)
+ 02h	QWORD	descriptor (set by host)
+--------E-31000F-----------------------------
+INT 31 P - DPMI 1.0+ - SET MULTIPLE DESCRIPTORS
+	AX = 000Fh
+	CX = number of descriptors to copy
+	ES:(E)DI -> descriptor buffer (see #2295)
+Return: CF clear if successful
+	    descriptors copied
+	CF set on error
+	    AX = error code (8021h,8022h,8025h) (see #2293)
+	    CX = number of descriptors successfully copied
+Notes:	16-bit programs use ES:DI as pointer, 32-bit must use ES:EDI
+	if the function fails, the first CX descriptors are valid; the
+	  remainder are not modified
+	DPMI 1.0+ automatically reloads any segment registers containing a
+	  selector being modified
+SeeAlso: AX=000Ch,AX=000Eh
+
+Format of DPMI descriptor buffer entry (one per descriptor to set):
+Offset	Size	Description	(Table 2295)
+ 00h	WORD	selector
+ 02h	QWORD	descriptor
+--------E-310100-----------------------------
+INT 31 P - DPMI 0.9+ - ALLOCATE DOS MEMORY BLOCK
+	AX = 0100h
+	BX = number of paragraphs to allocate
+Return: CF clear if successful
+	    AX = real mode segment of allocated block
+	    DX = first selector for allocated block
+	CF set on error
+	    AX = DOS error code (07h,08h) (see #0960 at INT 21/AH=59h)
+		(DPMI 1.0+) DPMI error code (8011h) (see #2293)
+	    BX = size (in paragraphs) of largest available block
+Notes:	multiple contiguous selectors are allocated for blocks of more than 64K
+	  if the caller is a 16-bit program
+	never modify or deallocate returned descriptors
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0101h,AX=0501h
+--------E-310101-----------------------------
+INT 31 P - DPMI 0.9+ - FREE DOS MEMORY BLOCK
+	AX = 0101h
+	DX = selector of block
+Return: CF set if successful
+	CF set on error
+	    AX = DOS error code (07h,09h) (see #0960 at INT 21/AH=59h)
+Notes:	all descriptors allocated for the block are automatically freed
+	DPMI 1.0+ automatically zeros any segment registers containing a
+	  selector freed by this function
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0100h,AX=0102h,AX=0502h
+--------E-310102-----------------------------
+INT 31 P - DPMI 0.9+ - RESIZE DOS MEMORY BLOCK
+	AX = 0102h
+	BX = new block size in paragraphs
+	DX = selector of block
+Return: CF clear if successful
+	CF set on error
+	    AX = DOS error code (07h,08h,09h) (see #0960 at INT 21/AH=59h)
+		(DPMI 1.0+) DPMI error code (8011h,8022h) (see #2293)
+	    BX = maximum block size (in paragraphs) possible
+Notes:	increasing the size of a block past a 64K boundary will fail if the
+	  next descriptor in the LDT is already in use
+	shrinking a block past a 64K boundary will cause some selectors to be
+	  freed; DPMI 1.0+ automatically zeros any segment registers containing
+	  a selector freed by this function
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0100h
+--------E-310200-----------------------------
+INT 31 P - DPMI 0.9+ - GET REAL MODE INTERRUPT VECTOR
+	AX = 0200h
+	BL = interrupt number
+Return: CF clear
+	CX:DX = segment:offset of real mode interrupt handler
+Note:	the DPMI implementation is required to support all 256 vectors
+SeeAlso: AX=0201h,AX=0204h,INT 21/AX=2503h
+--------E-310201-----------------------------
+INT 31 P - DPMI 0.9+ - SET REAL MODE INTERRUPT VECTOR
+	AX = 0201h
+	BL = interrupt number
+	CX:DX = segment:offset of real mode handler
+Return: CF clear
+Note:	all memory that may be touched by a hardware interrupt handler must be
+	  locked down with INT 31/AX=0600h
+SeeAlso: AX=0200h,AX=0205h,AX=0600h,INT 21/AX=2505h
+--------E-310202-----------------------------
+INT 31 P - DPMI 0.9+ - GET PROCESSOR EXCEPTION HANDLER VECTOR
+	AX = 0202h
+	BL = exception number (00h-1Fh)
+Return: CF clear if successful
+	    CX:(E)DX = selector:offset of handler
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8021h) (see #2293)
+Notes:	16-bit programs receive the pointer in CX:DX, 32-bit programs in CX:EDX
+	DPMI 1.0+ supports this function only for backward compatibility; use
+	   AX=0210h or AX=0211h instead
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0203h,AX=0210h,AX=0211h,INT 2F/AX=FB42h/BX=0021h
+--------E-310203-----------------------------
+INT 31 P - DPMI 0.9+ - SET PROCESSOR EXCEPTION HANDLER VECTOR
+	AX = 0203h
+	BL = exception number (00h-1Fh)
+	CX:(E)DX = selector:offset of handler
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8021h,8022h) (see #2293)
+Notes:	32-bit programs must supply an offset in EDX and use a 32-bit interrupt
+	  stack frame on chaining to the next exception handler
+	the handler should return using a FAR return
+	all fault stack frames contain an error code, but it is only valid for
+	  exceptions 08h and 0Ah-0Eh
+	handlers will only be called if the exception occurs in protected mode,
+	  and the DPMI host does not transparently handle the exception
+	the handler may change certain values on the stack frame
+	  (see #2296,#2297)
+	DPMI 1.0+ supports this function only for backward compatibility; use
+	   AX=0212h or AX=0213h instead
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0202h,AX=0212h,AX=0213h,INT 2F/AX=FB42h/BX=0022h
+
+Format of stack frame for 16-bit programs: (offset from SS:SP)
+Offset	Size	Description	(Table 2296)
+ 00h	DWORD	return CS:IP (do not change)
+ 04h	WORD	error code
+ 06h	DWORD	CS:IP of exception
+ 0Ah	WORD	flags
+ 0Ch	DWORD	SS:SP
+
+Format of stack frame for 32-bit programs: (offset from SS:ESP)
+Offset	Size	Description	(Table 2297)
+ 00h	DWORD	return EIP (do not change)
+ 04h	WORD	return CS selector (do not change)
+ 06h	WORD	reserved (do not change)
+ 08h	DWORD	error code
+ 0Ch	DWORD	EIP of exception
+ 10h	WORD	CS selector of exception
+ 12h	WORD	reserved (do not change)
+ 14h	DWORD	EFLAGS
+ 18h	DWORD	ESP
+ 1Ch	WORD	SS
+ 1Eh	WORD	reserved (do not change)
+--------E-310204-----------------------------
+INT 31 P - DPMI 0.9+ - GET PROTECTED MODE INTERRUPT VECTOR
+	AX = 0204h
+	BL = interrupt number
+Return: CF clear
+	CX:(E)DX = selector:offset of handler
+Notes:	16-bit programs use CX:DX, 32-bit programs use CX:EDX
+	DPMI implementations are required to support all 256 vectors
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0200h,AX=0205h,INT 21/AX=2502h,INT 2C/AX=0006h
+SeeAlso: INT 2F/AX=FB42h/BX=0024h
+--------E-310205-----------------------------
+INT 31 P - DPMI 0.9+ - SET PROTECTED MODE INTERRUPT VECTOR
+	AX = 0205h
+	BL = interrupt number
+	CX:(E)DX = selector:offset of handler
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8022h) (see #2293)
+Notes:	16-bit programs use CX:DX, 32-bit programs use CX:EDX
+	32-bit programs must use a 32-bit interrupt stack frame when chaining
+	  to the next handler
+	DPMI implementations are required to support all 256 vectors
+	hardware interrupts are reflected to the virtual machine's primary
+	  client, software interrupts to the current client
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0201h,AX=0204h,INT 21/AX=2504h,INT 2C/AX=0007h
+SeeAlso: INT 2F/AX=FB42h/BX=0025h
+--------E-310210-----------------------------
+INT 31 P - DPMI 1.0+ - GET PROTECTED MODE EXTENDED PROCESSOR EXCEPTION HANDLER
+	AX = 0210h
+	BL = exception number (00h-1Fh)
+Return: CF clear if successful
+	    CX:(E)DX = selector:offset of exception handler
+	CF set on error
+	    AX = error code (8021h) (see #2293)
+Note:	DPMI host reflects exception to current client's handler
+SeeAlso: AX=0202h,AX=0211h,AX=0212h
+--------E-310211-----------------------------
+INT 31 P - DPMI 1.0+ - GET REAL MODE EXTENDED PROCESSOR EXCEPTION HANDLER
+	AX = 0211h
+	BL = exception number (00h-1Fh)
+Return: CF clear if successful
+	    CX:(E)DX = selector:offset of exception handler
+	CF set on error
+	    AX = error code (8021h) (see #2293)
+Notes:	returns address of protected-mode handler for real-mode exception
+	DPMI host performs a switch to protected mode, reflects the exception
+	  to the virtual machine's primary client, and returns to real mode
+	  on the handler's completion
+SeeAlso: AX=0202h,AX=0210h,AX=0213h
+--------E-310212-----------------------------
+INT 31 P - DPMI 1.0+ - SET PROTECTED MODE EXTENDED PROCESSOR EXCEPTION HANDLER
+	AX = 0212h
+	BL = exception or fault number (00h-1Fh)
+	CX:(E)DX = exception handler selector:offset
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (8021h,8022h) (see #2293)
+Note:	DPMI host sends exception to current client's handler
+SeeAlso: AX=0203h,AX=0210h,AX=0213h
+--------E-310213-----------------------------
+INT 31 P - DPMI 1.0+ - SET REAL MODE EXTENDED PROCESSOR EXCEPTION HANDLER
+	AX = 0213h
+	BL = exception or fault number (00h-1Fh)
+	CX:(E)DX = exception handler selector:offset
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (8021h,8022h) (see #2293)
+Notes:	specifies address of protected-mode handler for real-mode exception
+	DPMI host performs a switch to protected mode, reflects the exception
+	  to the virtual machine's primary client, and returns to real mode
+	  on the handler's completion
+SeeAlso: AX=0203h,AX=0211h,AX=0212h
+--------E-310300-----------------------------
+INT 31 P - DPMI 0.9+ - SIMULATE REAL MODE INTERRUPT
+	AX = 0300h
+	BL = interrupt number
+	BH = flags
+	    bit 0: reset the interrupt controller and A20 line (DPMI 0.9)
+		    reserved, must be 0 (DPMI 1.0+)
+	    others: reserved, must be 0
+	CX = number of words to copy from protected mode to real mode stack
+	ES:(E)DI = selector:offset of real mode call structure (see #2298)
+Return: CF clear if successful
+	    real mode call structure modified (all fields except SS:SP, CS:IP
+	      filled with return values from real mode interrupt)
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8012h,8013h,8014h,8021h)(see #2293)
+	protected mode stack unchanged
+Notes:	16-bit programs use ES:DI as pointer, 32-bit programs use ES:EDI
+	CS:IP in the real mode call structure is ignored for this call,
+	  instead, the indicated interrupt vector is used for the address
+	the flags in the call structure are pushed on the real mode stack to
+	  form an interrupt stack frame, and the trace and interrupt flags are
+	  clear on entry to the handler
+	DPMI will provide a small (30 words) real mode stack if SS:SP is zero
+	the real mode handler must return with the stack in the same state as
+	  it was on being called
+SeeAlso: AX=0302h,AX=FF01h,INT 21/AX=2511h,INT 21/AH=E3h"OS/286"
+SeeAlso: INT 2C/AX=0026h,INT 2F/AX=FB42h/BX=000Dh
+
+Format of DPMI real mode call structure:
+Offset	Size	Description	(Table 2298)
+ 00h	DWORD	EDI
+ 04h	DWORD	ESI
+ 08h	DWORD	EBP
+ 0Ch	DWORD	reserved (00h)
+ 10h	DWORD	EBX
+ 14h	DWORD	EDX
+ 18h	DWORD	ECX
+ 1Ch	DWORD	EAX
+ 20h	WORD	flags
+ 22h	WORD	ES
+ 24h	WORD	DS
+ 26h	WORD	FS
+ 28h	WORD	GS
+ 2Ah	WORD	IP
+ 2Ch	WORD	CS
+ 2Eh	WORD	SP
+ 30h	WORD	SS
+--------E-310301-----------------------------
+INT 31 P - DPMI 0.9+ - CALL REAL MODE PROCEDURE WITH FAR RETURN FRAME
+	AX = 0301h
+	BH = flags
+	    bit 0: reset the interrupt controller and A20 line (DPMI 0.9)
+		    reserved, must be 0 (DPMI 1.0+)
+	    others: reserved must be 0
+	CX = number of words to copy from protected mode to real mode stack
+	ES:(E)DI = selector:offset of real mode call structure
+		  (see #2298 at INT 31/AX=0300h)
+Return: CF clear if successful
+	    real mode call structure modified (all fields except SS:SP, CS:IP
+	      filled with return values from real mode interrupt)
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8012h,8013h,8014h,8021h)(see #2293)
+	protected mode stack unchanged
+Notes:	16-bit programs use ES:DI as pointer, 32-bit programs use ES:EDI
+	the real mode procedure must exit with a FAR return
+	DPMI will provide a small (30 words) real mode stack if SS:SP is zero
+	the real mode handler must return with the stack in the same state as
+	  it was on being called
+SeeAlso: AX=0300h,AX=0302h,AX=FF02h,INT 21/AX=250Eh,INT 21/AH=E1h"OS/286"
+SeeAlso: INT 2C/AX=0025h
+--------E-310302-----------------------------
+INT 31 P - DPMI 0.9+ - CALL REAL MODE PROCEDURE WITH IRET FRAME
+	AX = 0302h
+	BH = flags
+	    bit 0: reset the interrupt controller and A20 line (DPMI 0.9)
+		    reserved, must be 0 (DPMI 1.0+)
+	    others: reserved, must be 0
+	CX = number of words to copy from protected mode to real mode stack
+	ES:(E)DI = selector:offset of real mode call structure
+		  (see #2298 at INT 31/AX=0300h)
+Return: CF clear if successful
+	    real mode call structure modified (all fields except SS:SP, CS:IP
+	      filled with return values from real mode interrupt)
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8012h,8013h,8014h,8021h)(see #2293)
+	protected mode stack unchanged
+Notes:	16-bit programs use ES:DI as pointer, 32-bit programs use ES:EDI
+	the flags in the call structure are pushed on the real mode stack to
+	  form an interrupt stack frame, and the trace and interrupt flags are
+	  clear on entry to the handler
+	the real mode procedure must exit with an IRET
+	DPMI will provide a small (30 words) real mode stack if SS:SP is zero
+	the real mode handler must return with the stack in the same state as
+	  it was on being called
+SeeAlso: AX=0300h
+--------E-310303-----------------------------
+INT 31 P - DPMI 0.9+ - ALLOCATE REAL MODE CALLBACK ADDRESS
+	AX = 0303h
+	DS:(E)SI = selector:offset of procedure to call
+	ES:(E)DI = selector:offset of real mode call structure (see #2298)
+Return: CF clear if successful
+	    CX:DX = segment:offset of real mode call address (see #2299)
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8015h) (see #2293)
+Notes:	the real mode call structure is static, causing reentrancy problems;
+	  its contents are only valid at the time of a callback
+	the called procedure must modify the real mode CS:IP before returning
+	values are returned to real mode by modifying the real mode call struc
+	DPMI hosts must provide at least 16 callbacks per client
+	the limited DPMI host built into Phar Lap's 286|DOS-Extender v2.5 does
+	  not support this function
+SeeAlso: AX=0304h,AX=0C00h
+
+(Table 2299)
+Values DPMI real-mode callback procedure is called with:
+	DS:(E)SI = selector:offset of real mode SS:SP
+	ES:(E)DI = selector:offset of real mode call structure
+	SS:(E)SP = locked protected mode API stack
+	interrupts disabled
+Return: (with IRET)
+	ES:(E)DI = selector:offset of real mode call structure to restore
+--------E-310304-----------------------------
+INT 31 P - DPMI 0.9+ - FREE REAL MODE CALLBACK ADDRESS
+	AX = 0304h
+	CX:DX = real mode callback address
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8024h) (see #2293)
+Note:	the limited DPMI host built into Phar Lap's 286|DOS-Extender v2.5 does
+	  not support this function
+SeeAlso: AX=0303h
+--------E-310305-----------------------------
+INT 31 P - DPMI 0.9+ - GET STATE SAVE/RESTORE ADDRESSES
+	AX = 0305h
+Return: CF clear
+	AX = size in bytes of state buffer
+	BX:CX = real mode address of procedure to save/restore state
+	SI:(E)DI = protected mode procedure to save/restore state (see #2300)
+Notes:	the buffer size will be zero if it is not necessary to preserve state
+	16-bit programs should call SI:DI, 32-bit programs should call SI:EDI
+	this function is only needed if using the raw mode switch service
+SeeAlso: AX=0306h
+
+(Table 2300)
+Call DPMI state-save procedures with:
+	AL = direction
+	    00h save state
+	    01h restore state
+	ES:(E)DI -> state buffer
+Return: all registers preserved
+--------E-310306-----------------------------
+INT 31 P - DPMI 0.9+ - GET RAW MODE SWITCH ADDRESSES
+	AX = 0306h
+Return: CF clear
+	BX:CX -> procedure to switch from real to protected mode (see #2301)
+	SI:(E)DI -> procedure to switch from protected to real mode
+Notes:	16-bit programs should jump to SI:DI, 32-bit programs should use SI:EDI
+	the caller must save and restore the state of the task with AX=0305h
+	not supported by MS Windows 3.0 in Standard mode
+SeeAlso: AX=0305h
+
+(Table 2301)
+Values to JUMP at mode-switch procedures with:
+	AX = new DS
+	CX = new ES
+	DX = new SS
+	(E)BX = new (E)SP
+	SI:(E)DI = new CS:(E)IP
+Notes:	BP/EBP is preserved across the call, but AX/EAX, BX/EBX, CX/ECX,
+	  DX/EDX, SI/ESI, and DI/EDI will be undefined; FS and GS will be 0000h
+	interrupts will stay disabled during the entire mode switch if they
+	  are disabled on entry to the mode-switch procedure
+--------E-310400-----------------------------
+INT 31 P - DPMI 0.9+ - GET DPMI VERSION
+	AX = 0400h
+Return: CF clear
+	AH = major version of DPMI spec supported
+	AL = two-digit minor version of DPMI spec supported
+	BX = DPMI host flags (see #2302)
+	CL = processor type (02h=80286, 03h=80386, 04h=80486)
+	DH = curr value of virtual master interrupt controller base interrupt
+	DL = curr value of virtual slave interrupt controller base interrupt
+BUG:	Windows NT versions from the March 1993 beta to at least the Final
+	  release with fixes to CSD002 report version 0090h (0.144); this has
+	  reportedly been corrected in the Windows NT 3.5 beta
+SeeAlso: AX=0401h,INT 21/AX=250Ch,INT 2F/AX=1687h,INT 67/AX=DE0Ah
+
+Bitfields for DPMI host flags:
+Bit(s)	Description	(Table 2302)
+ 0	running under an 80386 (32-bit) implementation
+ 1	processor returns to real mode for reflected interrupts instead of V86
+	  mode
+ 2	virtual memory supported
+ 3	reserved (undefined)
+ 4-15	reserved (zero)
+--------E-310401-----------------------------
+INT 31 P - DPMI 1.0+ - GET DPMI CAPABILITIES
+	AX = 0401h
+	ES:(E)DI -> 128-byte buffer for host description (see #2303)
+Return: CF clear if successful
+	    AX = capabilities (see #2304)
+	    CX = reserved (00h)
+	    DX = reserved (00h)
+	    buffer filled
+	CF set on error (DPMI 0.9 only)
+SeeAlso: AX=0400h
+
+Format of DPMI host description:
+Offset	Size	Description	(Table 2303)
+ 00h	BYTE	host major version number
+ 01h	BYTE	host minor version number
+ 02h 126 BYTEs	ASCIZ host vendor name
+
+Bitfields for DPMI capabilities:
+Bit(s)	Description	(Table 2304)
+ 0	paged accessed/dirty supported (see AX=0506h,AX=0507h)
+ 1	exceptions restartability supported
+ 2	device mapping supported (see AX=0508h)
+ 3	conventional memory mapping supported (see AX=0509h)
+ 4	demand zero-fill supported
+ 5	write-protect client capability supported
+ 6	write-protect host capability supported
+ 7-15	reserved
+--------E-310500-----------------------------
+INT 31 P - DPMI 0.9+ - GET FREE MEMORY INFORMATION
+	AX = 0500h
+	ES:(E)DI -> buffer for memory information (see #2305)
+Return: CF clear
+Notes:	16-bit programs use ES:DI, 32-bit programs use ES:EDI
+	this function must be considered advisory because other applications
+	  may affect the results at any time after the call
+	fields not supported by the DPMI implementation are filled with
+	  FFFFFFFFh
+	DPMI 1.0+ supports this function solely for backward compatibility; use
+	  AX=050Bh instead
+	the limited DPMI host built into Phar Lap's 286|DOS-Extender v2.5 only
+	  returns the first field in the memory information record
+SeeAlso: AX=0501h,AX=050Bh,AX=0604h
+
+Format of DPMI memory information:
+Offset	Size	Description	(Table 2305)
+ 00h	DWORD	largest available block in bytes
+ 04h	DWORD	maximum unlocked page allocation
+ 08h	DWORD	maximum locked page allocation
+ 0Ch	DWORD	total linear address space in pages
+ 10h	DWORD	total unlocked pages
+ 14h	DWORD	free pagess
+ 18h	DWORD	total physical pages
+ 1Ch	DWORD	free linear address space in pagess
+ 20h	DWORD	size of paging file/partition in pages
+ 24h 12 BYTEs	reserved
+--------E-310501-----------------------------
+INT 31 P - DPMI 0.9+ - ALLOCATE MEMORY BLOCK
+	AX = 0501h
+	BX:CX = size in bytes
+Return: CF clear if successful
+	    BX:CX = linear address of block
+	    SI:DI = memory block handle for resizing and freeing block
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8012h-8014h,8016h,8021h)(see #2293)
+Notes:	no selectors are allocated
+	the memory block is allocated unlocked (can be locked with AX=0600h)
+	allocations are often page granular (see AX=0604h)
+	under MS Windows 3.10 Enhanced mode with paging enabled, it is possible
+	  for this function to fail even if AX=0500h indicates that enough
+	  memory is available
+SeeAlso: AX=0000h,AX=0100h,AX=0500h,AX=0502h,AX=0503h,AX=0504h,AX=0D00h
+SeeAlso: INT 2F/AX=FB42h/BX=0002h
+--------E-310502-----------------------------
+INT 31 P - DPMI 0.9+ - FREE MEMORY BLOCK
+	AX = 0502h
+	SI:DI = handle of memory block
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8023h) (see #2293)
+Note:	any selectors allocated for the memory block must also be freed,
+	  preferably before freeing the memory block
+SeeAlso: AX=0001h,AX=0101h,AX=0501h,AX=0D01h
+--------E-310503-----------------------------
+INT 31 P - DPMI 0.9+ - RESIZE MEMORY BLOCK
+	AX = 0503h
+	BX:CX = new size in bytes (nonzero)
+	SI:DI = handle of memory block
+Return: CF clear if successful
+	    BX:CX = new linear address
+	    SI:DI = new handle of memory block
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8012h-8014h,8016h,8021h,8023h)
+		(see #2293)
+Notes:	any selectors pointing at the block must be updated
+	the previous memory block handle becomes invalid
+	an error is returned if the new size is 0
+SeeAlso: AX=0102h,AX=0501h,AX=0505h
+--------E-310504-----------------------------
+INT 31 P - DPMI 1.0+ - ALLOCATE LINEAR MEMORY BLOCK
+	AX = 0504h
+	EBX = page-aligned linear address of memory block (00000000h if any
+	      address is acceptable)
+	ECX = size in bytes (nonzero)
+	EDX = flags
+	    bit 0: set to create committed pages instead of uncommitted pages
+	    bits 1-31 reserved (0)
+Return: CF clear if successful
+	    EBX = linear address of memory block
+	    ESI = memory block handle
+	CF set on error
+	    AX = error code (8001h,8012h-8014h,8016h,8021h,8025h)(see #2293)
+Note:	only supported by 32-bit DPMI hosts, but may be used by 16-bit clients
+SeeAlso: AX=0501h,AX=0505h
+--------E-310505-----------------------------
+INT 31 P - DPMI 1.0+ - RESIZE LINEAR MEMORY BLOCK
+	AX = 0505h
+	ESI = memory block handle
+	ECX = new size in bytes (nonzero)
+	EDX = flags
+	    bit 0: create committed pages rather than uncommitted pages
+	    bit 1: segment descriptor update required
+		ES:EBX -> buffer containing array of WORDs with selectors
+		EDI = number of selectors in array
+	    bits 2-31 reserved (0)
+Return: CF clear if successful
+	    EBX = new linear base address
+	    ESI = new memory block handle
+	CF set on error
+	    AX = error code (8001h,8012h-8014h,8016h,8021h,8023h)(see #2293)
+Notes:	only supported by 32-bit DPMI hosts, but may be used by 16-bit clients
+	the old memory block handle becomes invalid
+	if EDX bit 1 set and the block's base address is changed, DPMI updates
+	  all descriptors for selectors in the update buffer which fall within
+	  the memory block
+SeeAlso: AX=0503h,AX=0504h
+--------E-310506-----------------------------
+INT 31 P - DPMI 1.0+ - GET PAGE ATTRIBUTES
+	AX = 0506h
+	ESI = memory block handle
+	EBX = offset in memory block of first page
+	ECX = number of pages
+	ES:EDX -> array of WORDs to hold page attributes (see #2306)
+Return: CF clear if successful
+	    buffer filled
+	CF set on error
+	    AX = error code (8001h,8023h,8025h) (see #2293)
+Notes:	only supported by 32-bit DPMI hosts, but may be used by 16-bit clients
+	if EBX is not page-aligned, it will be rounded down
+SeeAlso: AX=0504h,AX=0507h,INT 21/AX=251Dh,INT 21/AX=EB00h
+
+Bitfields for DPMI page attribute word:
+Bit(s)	Description	(Table 2306)
+ 0-2	page type
+	000 uncommitted
+	001 committed
+	010 mapped (see AX=0508h,AX=0509h)
+	other currently unused
+ 3	page is read/write rather than read-only
+ 4	accessed/dirty bits supplied in bits 5 and 6
+ 5	page has been accessed (only valid if bit 4 set)
+ 6	page has been written (only valid if bit 4 set)
+ 7-15	reserved (0)
+--------E-310507-----------------------------
+INT 31 P - DPMI 1.0+ - MODIFY PAGE ATTRIBUTES
+	AX = 0507h
+	ESI = memory block handle
+	EBX = offset in memory block of first page
+	ECX = number of pages
+	ES:EDX -> array of WORDs with new page attributes (see #2306)
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (8001h,8002h,8013h,8014h,8021h,8023h,8025h)
+		(see #2293)
+	    ECX = number of pages which have been set
+Notes:	only supported by 32-bit DPMI hosts, but may be used by 16-bit clients
+	if EBX is not page-aligned, it will be rounded down
+SeeAlso: AX=0504h,AX=0506h,INT 21/AX=251Eh
+--------E-310508-----------------------------
+INT 31 P - DPMI 1.0+ - MAP DEVICE IN MEMORY BLOCK
+	AX = 0508h
+	ESI = memory block handle
+	EBX = page-aligned offset within memory block of page(s) to be mapped
+	ECX = number of pages to map
+	EDX = page-aligned physical address of device
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (8001h,8003h,8023h,8025h) (see #2293)
+Notes:	only supported by 32-bit DPMI hosts, but may be used by 16-bit clients
+	support of this function is optional; hosts are also allowed to support
+	  the function for some devices but not others
+SeeAlso: AX=0504h,AX=0509h,AX=0800h,AX=0801h
+--------E-310509-----------------------------
+INT 31 P - DPMI 1.0+ - MAP CONVENTIONAL MEMORY IN MEMORY BLOCK
+	AX = 0509h
+	ESI = memory block handle
+	EBX = page-aligned offset within memory block of page(s) to map
+	ECX = number of pages to map
+	EDX = page-aligned linear address of conventional (below 1M) memory
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (8001h,8003h,8023h,8025h) (see #2293)
+Notes:	only supported by 32-bit DPMI hosts, but may be used by 16-bit clients
+	support of this function is optional
+SeeAlso: AX=0504h,AX=0508h,AX=0801h
+--------E-31050A-----------------------------
+INT 31 P - DPMI 1.0+ - GET MEMORY BLOCK SIZE AND BASE
+	AX = 050Ah
+	SI:DI = memory block handle
+Return: CF clear if successful
+	    SI:DI = size in bytes
+	    BX:CX = base address
+	CF set on error
+	    AX = error code (8023h) (see #2293)
+SeeAlso: AX=0501h,AX=0504h
+--------E-31050B-----------------------------
+INT 31 P - DPMI 1.0+ - GET MEMORY INFORMATION
+	AX = 050Bh
+	ES:(E)DI -> 128-byte buffer for memory information (see #2307)
+Return: CF clear if successful
+	CF set on error (DPMI 0.9 only)
+Note:	16-bit programs use ES:DI, 32-bit programs must use ES:EDI
+SeeAlso: AX=0500h
+
+Format of DPMI memory information:
+Offset	Size	Description	(Table 2307)
+ 00h	DWORD	total allocated bytes of physical memory controlled by host
+ 04h	DWORD	total allocated bytes of virtual memory controlled by host
+ 08h	DWORD	total available bytes of virtual memory controlled by host
+ 0Ch	DWORD	total allocated bytes of virtual memory for curr virtual mach
+ 10h	DWORD	total available bytes of virtual memory for curr virtual mach
+ 14h	DWORD	total allocated bytes of virtual memory for current client
+ 18h	DWORD	total available bytes of virtual memory for current client
+ 1Ch	DWORD	total locked bytes for current client
+ 20h	DWORD	maximum locked bytes for current client
+ 24h	DWORD	highest linear address available to current client
+ 28h	DWORD	largest available memory block in bytes
+ 2Ch	DWORD	minimum allocation unit in bytes
+ 30h	DWORD	allocation alignment unit size in bytes
+ 34h 76 BYTEs	reserved (00h)
+--------E-310600-----------------------------
+INT 31 P - DPMI 0.9+ - LOCK LINEAR REGION
+	AX = 0600h
+	BX:CX = starting linear address
+	SI:DI = size of region in bytes
+Return: CF clear if successful
+	CF set on error
+	    none of the memory is locked
+	    AX = error code (DPMI 1.0+) (8013h,8017h,8025h) (see #2293)
+Notes:	pages at beginning and end will be locked if the region overlaps them
+	may be called multiple times for a given page; the DPMI host keeps a
+	  lock count for each page
+SeeAlso: AX=0004h,AX=0601h,INT 21/AX=251Ah,INT 21/AX=EB06h
+--------E-310601-----------------------------
+INT 31 P - DPMI 0.9+ - UNLOCK LINEAR REGION
+	AX = 0601h
+	BX:CX = starting linear address
+	SI:DI = size of region in bytes
+Return: CF clear if successful
+	CF set on error
+	    none of the memory is unlocked
+	    AX = error code (DPMI 1.0+) (8002h,8025h) (see #2293)
+Notes:	pages at beginning and end will be unlocked if the region overlaps them
+	memory whose lock count has not reached zero remains locked
+SeeAlso: AX=0005h,AX=0600h,INT 21/AX=251Bh,INT 21/AX=EB07h
+--------E-310602-----------------------------
+INT 31 P - DPMI 0.9+ - MARK REAL MODE REGION AS PAGEABLE
+	AX = 0602h
+	BX:CX = starting linear address
+	SI:DI = size of region in bytes
+Return: CF clear if successful
+	CF set on error
+	    none of the memory is made pageable
+	    AX = error code (DPMI 1.0+) (8002h,8025h) (see #2293)
+Notes:	must relock all unlocked real mode memory before terminating process
+	  for DPMI 0.9; DPMI 1.0+ automatically relocks real mode memory
+	pages at beginning and end will be unlocked if the region overlaps them
+	pageability of real mode pages is binary, not a count
+SeeAlso: AX=0600h,AX=0603h
+--------E-310603-----------------------------
+INT 31 P - DPMI 0.9+ - RELOCK REAL MODE REGION
+	AX = 0603h
+	BX:CX = starting linear address
+	SI:DI = size of region in bytes
+Return: CF clear if successful
+	CF set on error
+	    none of the memory is relocked
+	    AX = error code (DPMI 1.0+) (8002h,8013h,8025h) (see #2293)
+Notes:	pages at beginning and end will be relocked if the region overlaps them
+	pageability of real mode pages is binary, not a count
+SeeAlso: AX=0602h
+--------E-310604-----------------------------
+INT 31 P - DPMI 0.9+ - GET PAGE SIZE
+	AX = 0604h
+Return: CF clear if successful
+	    BX:CX = page size in bytes
+	CF set on error
+	    AX = error code (DPMI 1.0+) (see also #2293)
+		8001h unsupported, 16-bit host
+BUG:	the Borland C++ 3.1 DPMILOAD returns with CF clear but BX and CX
+	  unchanged
+--------E-310700-----------------------------
+INT 31 Pu - DPMI 0.9+ - MARK PAGES AS PAGING CANDIDATES
+	AX = 0700h
+	BX:CX = starting linear page number
+	SI:DI = number of pages to mark as paging candidates
+Return: ???
+Note:	although marked as reserved in versions 0.9 and 1.0 of the DPMI
+	  specification, this function is called by MS Windows TASKMAN,
+	  PROGMAN, and KERNEL
+SeeAlso: AX=0701h,AX=0702h
+--------E-310701-----------------------------
+INT 31 Pu - DPMI 0.9+ - DISCARD PAGES
+	AX = 0701h
+	BX:CX = starting linear page number
+	SI:DI = number of pages to discard
+Return: ???
+Note:	although marked as reserved in versions 0.9 and 1.0 of the DPMI
+	  specification, this function is called by MS Windows TASKMAN,
+	  PROGMAN, and KERNEL
+SeeAlso: AX=0700h,AX=0703h
+--------E-310702-----------------------------
+INT 31 P - DPMI 0.9+ - MARK PAGE AS DEMAND PAGING CANDIDATE
+	AX = 0702h
+	BX:CX = starting linear address
+	SI:DI = number of bytes to mark as paging candidates
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8025h) (see #2293)
+Notes:	this function is advisory, and does not force immediate paging
+	partial pages will not be discarded
+SeeAlso: AX=0700h,AX=0703h
+--------E-310703-----------------------------
+INT 31 P - DPMI 0.9+ - DISCARD PAGE CONTENTS
+	AX = 0703h
+	BX:CX = starting linear address
+	SI:DI = number of bytes to mark as discarded
+Return: CF clear if successful
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8025h) (see #2293)
+Notes:	this function is advisory, and may be ignored by DPMI implementations
+	partial pages will not be discarded
+SeeAlso: AX=0701h,AX=0702h
+--------E-310800-----------------------------
+INT 31 P - DPMI 0.9+ - PHYSICAL ADDRESS MAPPING
+	AX = 0800h
+	BX:CX = physical address (should be above 1 MB)
+	SI:DI = size in bytes
+Return: CF clear if successful
+	    BX:CX = linear address which maps the requested physical memory
+	CF set on error
+	    AX = error code (DPMI 1.0+) (8003h,8021h) (see #2293)
+Notes:	implementations may refuse this call because it can circumvent protects
+	the caller must build an appropriate selector for the memory
+	do not use for memory mapped in the first megabyte
+SeeAlso: AX=0002h,AX=0508h,AX=0509h,AX=0801h,INT 21/AX=250Ah,INT 21/AX=EB05h
+

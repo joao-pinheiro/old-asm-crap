@@ -1,0 +1,2 @@
+This repository contains misc. assorted (and incomplete) code from projects done mostly between 1994 and 1998. It is mainly TASM 5 code, and relies heavily on now-incompatible DPMI stuff. Consider all the code written by me in this repository to be licensed under the 2-clause BSD license.
+

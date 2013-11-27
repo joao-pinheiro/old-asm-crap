@@ -1,0 +1,25 @@
+File Struc Global Device Method {
+
+           Init        : PROC = FILE_INIT
+           ASSIGN      : PROC = FILE_ASSIGN
+           Create      : PROC = FILE_CREATE
+           OPEN        : PROC = FILE_OPEN
+           CLOSE       : PROC = FILE_CLOSE
+           TRUNCATE    : PROC = FILE_TRUNCATE
+           READ        : PROC = FILE_READ
+           WRITE       : PROC = FILE_WRITE
+           SETPOS      : PROC = FILE_SETPOS
+           GETPOS      : PROC = FILE_GETPOS
+           GETSIZE     : PROC = FILE_GETSIZE
+           SETFILEMODE : PROC = FILE_SETFILEMODE
+           DONE        : PROC = FILE_DONE
+
+           }
+
+           FNAME     DB 80 DUP(?)
+           FILEMODE  DB 02H
+           FILEATR   DB 20H
+           OPENED    DB 0
+
+         ENDS
+

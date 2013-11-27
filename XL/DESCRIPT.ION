@@ -1,0 +1,8 @@
+VCRT.ASM Text Mode Video OOP Library - Source File
+VCRT.INC Text Mode Video OOP Library - Include File
+STRINGS.ASM String Manipulation Procedures - Source File
+STRINGS.INC String Manipulation Procedures - Include File
+XL.ASM XDOS DOS EXTENDER - MAIN MODULE
+EXTERN.INC Dos Extender Include File
+SEGS.INC Segment definition file
+DEFS.INC Constants & Macros Include File

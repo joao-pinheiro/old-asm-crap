@@ -1,0 +1,20 @@
+Tpoint Struc
+	 X DW ?
+	 Y DW ?
+ENDS
+
+
+TRECT Struc
+	A Tpoint <>
+	B Tpoint <>
+ends
+
+Scrn Struc
+	   Window  Trect <>
+	   AT      Tpoint <>
+	   ATR	   DB ?
+	   Cols    DW ?
+	   Tofset  DW ?
+	   Displ   DD ?
+           Colunas DW ?
+ENDS
